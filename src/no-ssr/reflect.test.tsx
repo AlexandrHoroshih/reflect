@@ -266,3 +266,36 @@ describe('hooks', () => {
     });
   });
 });
+
+const FormInput = (props: {
+  field: string;
+  value: string;
+  onChange: (value: string) => void;
+}) => {
+  return <input {...props} />;
+};
+
+describe('mapProps', () => {
+  test('simple case', () => {
+    const changeName = createEvent<string>();
+    const $form = createStore({ name: '' }).on(changeName, (form, name) => ({
+      ...form,
+      name,
+    }));
+
+    const Name = reflect({
+      view: FormInput,
+      bind: {
+        onChange: changeName.prepend((event) => event.currentTarget.value),
+      },
+      mapProps: {
+        value: {
+          source: $form,
+          fn: (form, props) => form[props.field],
+        },
+      },
+    });
+
+    render(<Name data-testid="name" field="name" />);
+  });
+});

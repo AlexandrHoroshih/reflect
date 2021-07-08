@@ -1,5 +1,5 @@
-import { FC, createElement, useEffect, useCallback } from 'react';
-import { Store, combine, Event, Effect, is, StoreValue } from 'effector';
+import { FC, createElement, useEffect } from 'react';
+import { Store, combine, Event, Effect, is } from 'effector';
 
 import {
   ReflectCreatorContext,
@@ -10,25 +10,32 @@ import {
   Hook,
 } from './types';
 
-export interface ReflectConfig<Props, Bind extends BindByProps<Props>, T> {
+type MapProp<Props, Key extends keyof Props, T = any> = T extends {
+  source: Store<infer S>;
+  fn: (v: infer S, p: Props) => Props[Key];
+}
+  ? {
+      source: Store<S>;
+      fn: (v: S, p: Props) => Props[Key];
+    }
+  : never;
+
+export interface ReflectConfig<Props, Bind extends BindByProps<Props>> {
   view: View<Props>;
   bind: Bind;
   hooks?: Hooks;
   mapProps?: {
-    [P in keyof Partial<PropsByBind<Props, Bind>>]: {
-      source: Store<T>;
-      fn: (v: T, props: Props) => Props[P];
-    };
+    [P in keyof Partial<PropsByBind<Props, Bind>>]: MapProp<Props, P>;
   };
 }
 
 export function reflectCreateFactory(context: ReflectCreatorContext) {
   const reflect = reflectFactory(context);
 
-  return function createReflect<Props, T>(view: View<Props>) {
+  return function createReflect<Props>(view: View<Props>) {
     return <Bind extends BindByProps<Props> = BindByProps<Props>>(
       bind: Bind,
-      params?: Pick<ReflectConfig<Props, Bind, T>, 'hooks' | 'mapProps'>,
+      params?: Pick<ReflectConfig<Props, Bind>, 'hooks' | 'mapProps'>,
     ) => reflect<Props, Bind>({ view, bind, ...params });
   };
 }

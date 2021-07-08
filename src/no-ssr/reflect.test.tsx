@@ -267,11 +267,11 @@ describe('hooks', () => {
   });
 });
 
-const FormInput = (props: {
+const FormInput: FC<{
   field: string;
-  value: string;
-  onChange: (value: string) => void;
-}) => {
+  value?: string;
+  onChange: (value: ChangeEvent<HTMLInputElement>) => void;
+}> = (props) => {
   return <input {...props} />;
 };
 

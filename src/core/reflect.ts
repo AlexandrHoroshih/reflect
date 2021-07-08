@@ -1,5 +1,5 @@
 import { FC, createElement, useEffect, useCallback } from 'react';
-import { Store, combine, Event, Effect, is } from 'effector';
+import { Store, combine, Event, Effect, is, StoreValue } from 'effector';
 
 import {
   ReflectCreatorContext,
@@ -10,19 +10,25 @@ import {
   Hook,
 } from './types';
 
-export interface ReflectConfig<Props, Bind extends BindByProps<Props>> {
+export interface ReflectConfig<Props, Bind extends BindByProps<Props>, T> {
   view: View<Props>;
   bind: Bind;
   hooks?: Hooks;
+  mapProps?: {
+    [P in keyof Partial<PropsByBind<Props, Bind>>]: {
+      source: Store<T>;
+      fn: (v: T, props: Props) => Props[P];
+    };
+  };
 }
 
 export function reflectCreateFactory(context: ReflectCreatorContext) {
   const reflect = reflectFactory(context);
 
-  return function createReflect<Props>(view: View<Props>) {
+  return function createReflect<Props, T>(view: View<Props>) {
     return <Bind extends BindByProps<Props> = BindByProps<Props>>(
       bind: Bind,
-      params?: Pick<ReflectConfig<Props, Bind>, 'hooks'>,
+      params?: Pick<ReflectConfig<Props, Bind, T>, 'hooks' | 'mapProps'>,
     ) => reflect<Props, Bind>({ view, bind, ...params });
   };
 }

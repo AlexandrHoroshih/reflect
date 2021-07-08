@@ -10,13 +10,25 @@ import {
   Hook,
 } from './types';
 
-type MapProp<Props, Key extends keyof Props, T = any> = T extends {
+type Mapper<Props, Key extends keyof Props, Value> = (
+  v: Value,
+  props: Props,
+) => Props[Key];
+
+type MapProp<
+  Props,
+  Key extends keyof Props,
+  T = {
+    source: Store<never>;
+    fn: Mapper<Props, Key, never>;
+  }
+> = T extends {
   source: Store<infer S>;
-  fn: (v: infer S, p: Props) => Props[Key];
+  fn: Mapper<Props, Key, infer S>;
 }
   ? {
       source: Store<S>;
-      fn: (v: S, p: Props) => Props[Key];
+      fn: Mapper<Props, Key, S>;
     }
   : never;
 

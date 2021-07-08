@@ -15,21 +15,17 @@ type Mapper<Props, Key extends keyof Props, Value> = (
   props: Props,
 ) => Props[Key];
 
-type MapProp<
+type MapPropBase<Props, Key extends keyof Props, Value> = {
+  source: Store<Value>;
+  fn: Mapper<Props, Key, Value>;
+};
+
+type MapProp<Props, Key extends keyof Props, T = any> = T extends MapPropBase<
   Props,
-  Key extends keyof Props,
-  T = {
-    source: Store<never>;
-    fn: Mapper<Props, Key, never>;
-  }
-> = T extends {
-  source: Store<infer S>;
-  fn: Mapper<Props, Key, infer S>;
-}
-  ? {
-      source: Store<S>;
-      fn: Mapper<Props, Key, S>;
-    }
+  Key,
+  infer V
+>
+  ? MapPropBase<Props, Key, V>
   : never;
 
 export interface ReflectConfig<Props, Bind extends BindByProps<Props>> {
